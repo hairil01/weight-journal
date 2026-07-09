@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; background: #EDE6DC; }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+</helmet>
+<div style="display:flex; justify-content:center; padding:40px 20px; box-sizing:border-box;">
+<x-import component-from-global-scope="IOSDevice" from="./ios-frame.jsx" hint-size="402px,874px" width="{{ 402 }}" height="{{ 874 }}">
+  <div style="height:100%; overflow:auto; background:{{ pageBg }}; display:flex; flex-direction:column; position:relative;" data-screen-label="Journal">
+
+    <sc-if value="{{ isJournalTab }}" hint-placeholder-val="{{ true }}">
+    <!-- header -->
+    <div style="padding:64px 24px 8px; box-sizing:border-box;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+        <div style="font-family:-apple-system,system-ui; font-size:13px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:{{ accent }};">{{ t.newEntry }}</div>
+        <div style="display:flex; background:{{ cardBg }}; border:1px solid {{ border }}; border-radius:100px; padding:3px; gap:2px; flex-shrink:0;">
+          <div onClick="{{ setLangEn }}" style="padding:4px 9px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ langEnBg }}; color:{{ langEnColor }};">EN</div>
+          <div onClick="{{ setLangMs }}" style="padding:4px 9px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ langMsBg }}; color:{{ langMsColor }};">MY</div>
+          <div onClick="{{ setLangZh }}" style="padding:4px 9px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ langZhBg }}; color:{{ langZhColor }};">中文</div>
+        </div>
+      </div>
+      <div style="font-family:'Source Serif 4', serif; font-size:32px; font-weight:600; color:{{ ink }}; margin-top:8px; line-height:1.15;">{{ todayLabel }}</div>
+      <div style="font-family:-apple-system,system-ui; font-size:14px; color:{{ muted }}; margin-top:4px;">{{ t.daySubtitle }}</div>
+    </div>
+
+    <!-- preview time-of-day switch (demo aid) -->
+    <div style="padding:0 24px; box-sizing:border-box; display:flex; align-items:center; gap:8px;">
+      <span style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }};">{{ t.previewLabel }}:</span>
+      <div style="display:flex; background:{{ cardBg }}; border:1px solid {{ border }}; border-radius:100px; padding:3px; gap:2px;">
+        <div onClick="{{ setTimeAuto }}" style="padding:4px 10px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ previewAutoBg }}; color:{{ previewAutoColor }};">{{ t.previewAuto }}</div>
+        <div onClick="{{ setTimeMorning }}" style="padding:4px 10px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ previewMorningBg }}; color:{{ previewMorningColor }};">{{ t.previewMorning }}</div>
+        <div onClick="{{ setTimeEvening }}" style="padding:4px 10px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ previewEveningBg }}; color:{{ previewEveningColor }};">{{ t.previewEvening }}</div>
+      </div>
+    </div>
+
+    <!-- completion card -->
+    <div style="margin:14px 24px 0; background:{{ cardBg }}; border-radius:20px; border:1px solid {{ border }}; padding:16px 18px; box-sizing:border-box;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <span style="font-family:-apple-system,system-ui; font-size:14px; font-weight:600; color:{{ ink }};">{{ t.completionTitle }}</span>
+        <span style="font-family:'Source Serif 4', serif; font-size:14px; font-weight:600; color:{{ accent }};">{{ completedLabel }}</span>
+      </div>
+      <div style="display:flex; gap:14px;">
+        <div style="display:flex; align-items:center; gap:5px;">
+          <span style="font-size:13px; color:{{ morningDoneColor }};">&#10003;</span>
+          <span style="font-family:-apple-system,system-ui; font-size:12px; color:{{ morningDoneColor }};">{{ t.morningDoneLabel }}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:5px;">
+          <span style="font-size:13px; color:{{ mealsDoneColor }};">&#10003;</span>
+          <span style="font-family:-apple-system,system-ui; font-size:12px; color:{{ mealsDoneColor }};">{{ t.mealsDoneLabel }}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:5px;">
+          <span style="font-size:13px; color:{{ activitiesDoneColor }};">&#10003;</span>
+          <span style="font-family:-apple-system,system-ui; font-size:12px; color:{{ activitiesDoneColor }};">{{ t.activitiesDoneLabel }}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:5px;">
+          <span style="font-size:13px; color:{{ notesDoneColor }};">&#10003;</span>
+          <span style="font-family:-apple-system,system-ui; font-size:12px; color:{{ notesDoneColor }};">{{ t.notesDoneLabel }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MORNING SECTION -->
+    <div style="margin:14px 24px 0; padding:2px 2px; box-sizing:border-box;">
+      <span style="font-family:-apple-system,system-ui; font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:{{ muted }};">{{ t.morningSectionTitle }}</span>
+    </div>
+
+    <div style="margin:8px 24px 0; background:{{ cardBg }}; border-radius:20px; border:1px solid {{ border }}; padding:18px; box-sizing:border-box;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+        <div style="font-family:-apple-system,system-ui; font-size:15px; font-weight:600; color:{{ ink }};">{{ t.morning }} {{ t.weightTitle }}</div>
+        <div style="display:flex; background:{{ pageBg }}; border-radius:100px; padding:3px; gap:2px;">
+          <div onClick="{{ setUnitKg }}" style="padding:5px 12px; border-radius:100px; font-family:-apple-system,system-ui; font-size:13px; font-weight:600; cursor:pointer; background:{{ kgToggleBg }}; color:{{ kgToggleColor }};">kg</div>
+          <div onClick="{{ setUnitLbs }}" style="padding:5px 12px; border-radius:100px; font-family:-apple-system,system-ui; font-size:13px; font-weight:600; cursor:pointer; background:{{ lbsToggleBg }}; color:{{ lbsToggleColor }};">lbs</div>
+        </div>
+      </div>
+      <div style="display:flex; align-items:baseline; gap:4px; border-bottom:2px solid {{ border }}; padding-bottom:8px;">
+        <input value="{{ morningDisplay }}" onChange="{{ setMorning }}" placeholder="0.0" inputMode="decimal" style="width:100%; border:none; outline:none; background:transparent; font-family:'Source Serif 4', serif; font-size:26px; font-weight:600; color:{{ ink }};" />
+        <span style="font-family:-apple-system,system-ui; font-size:13px; color:{{ muted }};">{{ unit }}</span>
+      </div>
+
+      <div onClick="{{ toggleMealWeights }}" style="margin-top:14px; display:flex; align-items:center; gap:6px; cursor:pointer;">
+        <div style="width:16px; height:16px; border-radius:5px; background:{{ accentSoft }}; display:flex; align-items:center; justify-content:center; font-family:-apple-system,system-ui; font-size:12px; font-weight:700; color:{{ accent }};">{{ mealWeightGlyph }}</div>
+        <span style="font-family:-apple-system,system-ui; font-size:13px; font-weight:500; color:{{ accent }};">{{ mealWeightLabel }}</span>
+      </div>
+
+      <sc-if value="{{ showMealWeights }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; gap:12px; margin-top:14px; padding-top:14px; border-top:1px dashed {{ border }};">
+          <div style="flex:1;">
+            <div style="font-family:-apple-system,system-ui; font-size:12px; color:{{ muted }}; margin-bottom:6px;">{{ t.beforeMeal }}</div>
+            <div style="display:flex; align-items:baseline; gap:4px;">
+              <input value="{{ beforeDisplay }}" onChange="{{ setBefore }}" placeholder="0.0" inputMode="decimal" style="width:100%; border:none; outline:none; background:transparent; font-family:'Source Serif 4', serif; font-size:20px; font-weight:500; color:{{ ink }};" />
+              <span style="font-family:-apple-system,system-ui; font-size:12px; color:{{ muted }};">{{ unit }}</span>
+            </div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-family:-apple-system,system-ui; font-size:12px; color:{{ muted }}; margin-bottom:6px;">{{ t.afterMeal }}</div>
+            <div style="display:flex; align-items:baseline; gap:4px;">
+              <input value="{{ afterDisplay }}" onChange="{{ setAfter }}" placeholder="0.0" inputMode="decimal" style="width:100%; border:none; outline:none; background:transparent; font-family:'Source Serif 4', serif; font-size:20px; font-weight:500; color:{{ ink }};" />
+              <span style="font-family:-apple-system,system-ui; font-size:12px; color:{{ muted }};">{{ unit }}</span>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="margin:10px 24px 0; background:{{ cardBg }}; border-radius:20px; border:1px solid {{ border }}; padding:18px; box-sizing:border-box;">
+      <div style="font-family:-apple-system,system-ui; font-size:14px; font-weight:600; color:{{ ink }}; margin-bottom:8px;">{{ t.breakfastLabel }}</div>
+      <input value="{{ breakfast }}" onChange="{{ setBreakfast }}" placeholder="{{ t.breakfastPlaceholder }}" style="width:100%; box-sizing:border-box; border:1px solid {{ border }}; border-radius:12px; padding:10px 12px; font-family:-apple-system,system-ui; font-size:15px; color:{{ ink }}; outline:none; background:{{ pageBg }};" />
+      <div style="font-family:-apple-system,system-ui; font-size:14px; font-weight:600; color:{{ ink }}; margin:14px 0 8px;">{{ t.morningNotesLabel }} <span style="font-weight:400; color:{{ muted }};">({{ t.optionalTag }})</span></div>
+      <input value="{{ morningNotes }}" onChange="{{ setMorningNotes }}" placeholder="{{ t.morningNotesPlaceholder }}" style="width:100%; box-sizing:border-box; border:1px solid {{ border }}; border-radius:12px; padding:10px 12px; font-family:-apple-system,system-ui; font-size:15px; color:{{ ink }}; outline:none; background:{{ pageBg }};" />
+    </div>
+
+    <sc-if value="{{ showEveningReminder }}" hint-placeholder-val="{{ false }}">
+      <div style="margin:14px 24px 0; background:{{ accentSoft }}; border-radius:16px; padding:14px 16px; box-sizing:border-box;">
+        <div style="font-family:-apple-system,system-ui; font-size:13px; font-weight:600; color:{{ ink }}; margin-bottom:2px;">{{ t.reminderTitle }}</div>
+        <div style="font-family:-apple-system,system-ui; font-size:12px; color:{{ ink }}; opacity:0.75; line-height:1.4;">{{ t.reminderText }}</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showEveningSection }}" hint-placeholder-val="{{ false }}">
+    <div>
+    <!-- EVENING SECTION -->
+    <div style="margin:18px 24px 0; padding:2px 2px; box-sizing:border-box;">
+      <span style="font-family:-apple-system,system-ui; font-size:12px; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:{{ muted }};">{{ t.eveningSectionTitle }}</span>
+    </div>
+
+    <div style="margin:8px 24px 0; background:{{ cardBg }}; border-radius:20px; border:1px solid {{ border }}; padding:18px; box-sizing:border-box;">
+      <div style="font-family:-apple-system,system-ui; font-size:15px; font-weight:600; color:{{ ink }}; margin-bottom:14px;">{{ t.evening }} {{ t.weightTitle }}</div>
+      <div style="display:flex; align-items:baseline; gap:4px; border-bottom:2px solid {{ border }}; padding-bottom:8px;">
+        <input value="{{ eveningDisplay }}" onChange="{{ setEvening }}" placeholder="0.0" inputMode="decimal" style="width:100%; border:none; outline:none; background:transparent; font-family:'Source Serif 4', serif; font-size:26px; font-weight:600; color:{{ ink }};" />
+        <span style="font-family:-apple-system,system-ui; font-size:13px; color:{{ muted }};">{{ unit }}</span>
+      </div>
+    </div>
+
+    <div style="margin:10px 24px 0; background:{{ cardBg }}; border-radius:20px; border:1px solid {{ border }}; padding:18px; box-sizing:border-box; display:flex; flex-direction:column; gap:14px;">
+      <div>
+        <div style="font-family:-apple-system,system-ui; font-size:14px; font-weight:600; color:{{ ink }}; margin-bottom:8px;">{{ t.lunchLabel }}</div>
+        <input value="{{ lunch }}" onChange="{{ setLunch }}" placeholder="{{ t.lunchPlaceholder }}" style="width:100%; box-sizing:border-box; border:1px solid {{ border }}; border-radius:12px; padding:10px 12px; font-family:-apple-system,system-ui; font-size:15px; color:{{ ink }}; outline:none; background:{{ pageBg }};" />
+      </div>
+      <div>
+        <div style="font-family:-apple-system,system-ui; font-size:14px; font-weight:600; color:{{ ink }}; margin-bottom:8px;">{{ t.dinnerLabel }}</div>
+        <input value="{{ dinner }}" onChange="{{ setDinner }}" placeholder="{{ t.dinnerPlaceholder }}" style="width:100%; box-sizing:border-box; border:1px solid {{ border }}; border-radius:12px; padding:10px 12px; font-family:-apple-system,system-ui; font-size:15px; color:{{ ink }}; outline:none; background:{{ pageBg }};" />
+      </div>
+      <div>
+        <div style="font-family:-apple-system,system-ui; font-size:14px; font-weight:600; color:{{ ink }}; margin-bottom:8px;">{{ t.snacksLabel }} <span style="font-weight:400; color:{{ muted }};">({{ t.optionalTag }})</span></div>
+        <input value="{{ snacks }}" onChange="{{ setSnacks }}" placeholder="{{ t.snacksPlaceholder }}" style="width:100%; box-sizing:border-box; border:1px solid {{ border }}; border-radius:12px; padding:10px 12px; font-family:-apple-system,system-ui; font-size:15px; color:{{ ink }}; outline:none; background:{{ pageBg }};" />
+      </div>
+    </div>
+
+    <!-- activity card -->
+    <div style="margin:10px 24px 0; background:{{ cardBg }}; border-radius:20px; border:1px solid {{ border }}; padding:18px; box-sizing:border-box;">
+      <div style="font-family:-apple-system,system-ui; font-size:15px; font-weight:600; color:{{ ink }}; margin-bottom:12px;">{{ t.activitiesQuickTitle }}</div>
+      <div style="display:flex; flex-wrap:wrap; gap:8px;">
+        <sc-for list="{{ quickActivities }}" as="a" hint-placeholder-count="6">
+          <div onClick="{{ a.toggle }}" style="display:flex; align-items:center; gap:6px; padding:9px 14px; border-radius:100px; background:{{ a.bg }}; color:{{ a.fg }}; cursor:pointer; border:1px solid {{ border }};">
+            <span style="font-size:15px;">{{ a.emoji }}</span>
+            <span style="font-family:-apple-system,system-ui; font-size:13px; font-weight:500;">{{ a.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <input value="{{ customActivityInput }}" onChange="{{ setCustomActivityInput }}" onKeyDown="{{ customActivityKeyDown }}" placeholder="{{ t.customActivityPlaceholder }}" style="flex:1; border:1px solid {{ border }}; border-radius:12px; padding:10px 12px; font-family:-apple-system,system-ui; font-size:14px; color:{{ ink }}; outline:none; background:{{ pageBg }};" />
+        <div onClick="{{ addCustomActivity }}" style="padding:0 16px; border-radius:12px; background:{{ accent }}; color:#fff; display:flex; align-items:center; justify-content:center; font-family:-apple-system,system-ui; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;">{{ t.addCustomActivityLabel }}</div>
+      </div>
+      <sc-if value="{{ hasActivities }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; padding-top:12px; border-top:1px dashed {{ border }};">
+          <sc-for list="{{ activities }}" as="item" hint-placeholder-count="0">
+            <div style="display:flex; align-items:center; gap:6px; background:{{ pageBg }}; border-radius:100px; padding:7px 8px 7px 14px;">
+              <span style="font-family:-apple-system,system-ui; font-size:14px; color:{{ ink }};">{{ item.text }}</span>
+              <div onClick="{{ item.remove }}" style="width:18px; height:18px; border-radius:50%; background:{{ border }}; display:flex; align-items:center; justify-content:center; font-size:11px; color:{{ muted }}; cursor:pointer;">&times;</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+
+    <!-- mood + notes card -->
+    <div style="margin:10px 24px 0; background:{{ cardBg }}; border-radius:20px; border:1px solid {{ border }}; padding:18px; box-sizing:border-box;">
+      <div style="font-family:-apple-system,system-ui; font-size:15px; font-weight:600; color:{{ ink }}; margin-bottom:12px;">{{ t.moodTitle }}</div>
+      <div style="display:flex; justify-content:space-between; gap:8px; margin-bottom:8px;">
+        <sc-for list="{{ moodOptions }}" as="m" hint-placeholder-count="5">
+          <div onClick="{{ m.select }}" style="flex:1; display:flex; align-items:center; justify-content:center; height:44px; border-radius:14px; background:{{ m.bg }}; border:1.5px solid {{ m.ring }}; cursor:pointer; font-size:22px;">{{ m.emoji }}</div>
+        </sc-for>
+      </div>
+      <div style="font-family:-apple-system,system-ui; font-size:12px; color:{{ muted }}; text-align:center; margin-bottom:14px; min-height:14px;">{{ selectedMoodLabel }}</div>
+
+      <div style="font-family:-apple-system,system-ui; font-size:14px; font-weight:600; color:{{ ink }}; margin-bottom:8px;">{{ t.eveningNotesLabel }} <span style="font-weight:400; color:{{ muted }};">({{ t.optionalTag }})</span></div>
+      <textarea value="{{ notes }}" onChange="{{ setNotes }}" placeholder="{{ t.notesPlaceholder }}" rows="3" style="width:100%; box-sizing:border-box; border:1px solid {{ border }}; border-radius:12px; padding:10px 12px; font-family:-apple-system,system-ui; font-size:15px; color:{{ ink }}; outline:none; background:{{ pageBg }}; resize:none;"></textarea>
+    </div>
+    </div>
+    </sc-if>
+
+    <!-- save button -->
+    <div style="padding:20px 24px 8px;">
+      <div onClick="{{ handleSave }}" style="background:{{ saveBg }}; color:#fff; border-radius:16px; padding:15px; text-align:center; font-family:-apple-system,system-ui; font-size:16px; font-weight:600; cursor:pointer; transition:background 0.2s;">{{ saveLabel }}</div>
+    
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isProgressTab }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Progress">
+    <!-- progress header -->
+    <div style="padding:64px 24px 8px; box-sizing:border-box;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+        <div style="font-family:-apple-system,system-ui; font-size:13px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:{{ accent }};">{{ t.progressTitle }}</div>
+        <div style="display:flex; background:{{ cardBg }}; border:1px solid {{ border }}; border-radius:100px; padding:3px; gap:2px; flex-shrink:0;">
+          <div onClick="{{ setLangEn }}" style="padding:4px 9px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ langEnBg }}; color:{{ langEnColor }};">EN</div>
+          <div onClick="{{ setLangMs }}" style="padding:4px 9px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ langMsBg }}; color:{{ langMsColor }};">MY</div>
+          <div onClick="{{ setLangZh }}" style="padding:4px 9px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ langZhBg }}; color:{{ langZhColor }};">中文</div>
+        </div>
+      </div>
+      <div style="font-family:'Source Serif 4', serif; font-size:32px; font-weight:600; color:{{ ink }}; margin-top:8px; line-height:1.15;">{{ currentDisplay }} <span style="font-size:18px; font-weight:500; color:{{ muted }};">{{ unit }}</span></div>
+      <div style="font-family:-apple-system,system-ui; font-size:14px; color:{{ muted }}; margin-top:4px;">{{ progressSubtitle }}</div>
+    </div>
+
+    <!-- stat tiles -->
+    <div style="display:flex; gap:10px; padding:0 24px; box-sizing:border-box;">
+      <div style="flex:1; background:{{ cardBg }}; border:1px solid {{ border }}; border-radius:16px; padding:14px;">
+        <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }}; margin-bottom:4px;">{{ t.lostLabel }}</div>
+        <div style="font-family:'Source Serif 4', serif; font-size:20px; font-weight:600; color:{{ accent }};">{{ lostDisplay }} {{ unit }}</div>
+      </div>
+      <div style="flex:1; background:{{ cardBg }}; border:1px solid {{ border }}; border-radius:16px; padding:14px;">
+        <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }}; margin-bottom:4px;">{{ t.startedLabel }}</div>
+        <div style="font-family:'Source Serif 4', serif; font-size:20px; font-weight:600; color:{{ ink }};">{{ startedDisplay }} {{ unit }}</div>
+      </div>
+      <div style="flex:1; background:{{ cardBg }}; border:1px solid {{ border }}; border-radius:16px; padding:14px;">
+        <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }}; margin-bottom:4px;">{{ t.streakLabel }}</div>
+        <div style="font-family:'Source Serif 4', serif; font-size:20px; font-weight:600; color:{{ ink }};">{{ streakDays }}</div>
+      </div>
+    </div>
+
+    <!-- chart card -->
+    <div style="margin:14px 24px 0; background:{{ cardBg }}; border-radius:20px; border:1px solid {{ border }}; padding:18px; box-sizing:border-box;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+        <div style="font-family:-apple-system,system-ui; font-size:15px; font-weight:600; color:{{ ink }};">{{ t.chartTitle }}</div>
+        <div style="display:flex; background:{{ pageBg }}; border-radius:100px; padding:3px; gap:2px;">
+          <div onClick="{{ setUnitKg }}" style="padding:5px 12px; border-radius:100px; font-family:-apple-system,system-ui; font-size:13px; font-weight:600; cursor:pointer; background:{{ kgToggleBg }}; color:{{ kgToggleColor }};">kg</div>
+          <div onClick="{{ setUnitLbs }}" style="padding:5px 12px; border-radius:100px; font-family:-apple-system,system-ui; font-size:13px; font-weight:600; cursor:pointer; background:{{ lbsToggleBg }}; color:{{ lbsToggleColor }};">lbs</div>
+        </div>
+      </div>
+      <svg viewBox="0 0 300 100" style="width:100%; height:100px; display:block;">
+        <polyline points="{{ chartPoints }}" fill="none" stroke="{{ accent }}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+      </svg>
+      <div style="display:flex; justify-content:space-between; margin-top:6px;">
+        <span style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }};">{{ chartMaxLabel }} {{ unit }}</span>
+        <span style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }};">{{ chartMinLabel }} {{ unit }}</span>
+      </div>
+    </div>
+
+    <!-- averages -->
+    <div style="display:flex; gap:10px; margin:14px 24px 0;">
+      <div style="flex:1; background:{{ cardBg }}; border:1px solid {{ border }}; border-radius:16px; padding:14px;">
+        <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }}; margin-bottom:4px;">{{ t.weeklyAvgLabel }}</div>
+        <div style="font-family:'Source Serif 4', serif; font-size:18px; font-weight:600; color:{{ ink }};">{{ weeklyAvgDisplay }} {{ unit }}</div>
+      </div>
+      <div style="flex:1; background:{{ cardBg }}; border:1px solid {{ border }}; border-radius:16px; padding:14px;">
+        <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }}; margin-bottom:4px;">{{ t.monthlyAvgLabel }}</div>
+        <div style="font-family:'Source Serif 4', serif; font-size:18px; font-weight:600; color:{{ ink }};">{{ monthlyAvgDisplay }} {{ unit }}</div>
+      </div>
+    </div>
+
+    <!-- milestone ladder -->
+    <div style="margin:14px 24px 0; background:{{ cardBg }}; border-radius:20px; border:1px solid {{ border }}; padding:18px; box-sizing:border-box;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <div style="font-family:-apple-system,system-ui; font-size:15px; font-weight:600; color:{{ ink }};">{{ t.milestonesTitle }}</div>
+        <div style="text-align:right;">
+          <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }};">{{ t.goalLabel }}: {{ goalDisplay }} {{ unit }}</div>
+          <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ accent }}; font-weight:600;">{{ goalProgressLabel }}</div>
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:center;">
+        <sc-for list="{{ milestoneLadder }}" as="ms" hint-placeholder-count="4">
+          <div style="display:flex; flex-direction:column; align-items:center;">
+            <div style="display:flex; align-items:center; gap:10px; width:100%;">
+              <div style="width:36px; height:36px; border-radius:50%; background:{{ ms.dotBg }}; border:1.5px solid {{ border }}; color:{{ ms.dotColor }}; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">
+                <sc-if value="{{ ms.achieved }}" hint-placeholder-val="{{ false }}">&#10003;</sc-if>
+              </div>
+              <span style="font-family:'Source Serif 4', serif; font-size:16px; font-weight:600; color:{{ ink }};">{{ ms.display }} {{ unit }}</span>
+            </div>
+            <sc-if value="{{ ms.isLast }}" hint-placeholder-val="{{ false }}">
+            </sc-if>
+            <sc-if value="{{ ms.notLast }}" hint-placeholder-val="{{ true }}">
+              <div style="width:2px; height:20px; background:{{ border }}; margin-left:17px;"></div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- weekly reflection -->
+    <div onClick="{{ openReflection }}" style="margin:14px 24px 24px; background:{{ accentSoft }}; border-radius:20px; padding:18px; box-sizing:border-box; cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+      <div>
+        <div style="font-family:-apple-system,system-ui; font-size:15px; font-weight:600; color:{{ ink }}; margin-bottom:4px;">{{ t.weeklyReflectionTitle }}</div>
+        <div style="font-family:'Source Serif 4', serif; font-style:italic; font-size:14px; color:{{ ink }}; opacity:0.75;">&ldquo;{{ t.weeklyReflectionPrompt }}&rdquo;</div>
+      </div>
+      <span style="font-size:20px; color:{{ accent }};">&#8250;</span>
+    </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ showReflection }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute; inset:0; background:rgba(43,37,33,0.4); display:flex; align-items:flex-end; z-index:40;">
+        <div style="background:{{ pageBg }}; width:100%; border-radius:24px 24px 0 0; padding:20px 24px 28px; box-sizing:border-box; max-height:85%; overflow:auto;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+            <span style="font-family:'Source Serif 4', serif; font-size:20px; font-weight:600; color:{{ ink }};">{{ t.weeklyReflectionTitle }}</span>
+            <div onClick="{{ closeReflection }}" style="width:28px; height:28px; border-radius:50%; background:{{ cardBg }}; border:1px solid {{ border }}; display:flex; align-items:center; justify-content:center; color:{{ muted }}; cursor:pointer; font-size:14px;">&times;</div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            <div>
+              <div style="font-family:-apple-system,system-ui; font-size:13px; font-weight:600; color:{{ ink }}; margin-bottom:6px;">{{ t.reflectionQ1 }}</div>
+              <textarea value="{{ reflectionQ1 }}" onChange="{{ setReflectionQ1 }}" rows="2" style="width:100%; box-sizing:border-box; border:1px solid {{ border }}; border-radius:12px; padding:10px 12px; font-family:-apple-system,system-ui; font-size:14px; color:{{ ink }}; outline:none; background:{{ cardBg }}; resize:none;"></textarea>
+            </div>
+            <div>
+              <div style="font-family:-apple-system,system-ui; font-size:13px; font-weight:600; color:{{ ink }}; margin-bottom:6px;">{{ t.reflectionQ2 }}</div>
+              <textarea value="{{ reflectionQ2 }}" onChange="{{ setReflectionQ2 }}" rows="2" style="width:100%; box-sizing:border-box; border:1px solid {{ border }}; border-radius:12px; padding:10px 12px; font-family:-apple-system,system-ui; font-size:14px; color:{{ ink }}; outline:none; background:{{ cardBg }}; resize:none;"></textarea>
+            </div>
+            <div>
+              <div style="font-family:-apple-system,system-ui; font-size:13px; font-weight:600; color:{{ ink }}; margin-bottom:6px;">{{ t.reflectionQ3 }}</div>
+              <textarea value="{{ reflectionQ3 }}" onChange="{{ setReflectionQ3 }}" rows="2" style="width:100%; box-sizing:border-box; border:1px solid {{ border }}; border-radius:12px; padding:10px 12px; font-family:-apple-system,system-ui; font-size:14px; color:{{ ink }}; outline:none; background:{{ cardBg }}; resize:none;"></textarea>
+            </div>
+            <div>
+              <div style="font-family:-apple-system,system-ui; font-size:13px; font-weight:600; color:{{ ink }}; margin-bottom:6px;">{{ t.reflectionQ4 }}</div>
+              <textarea value="{{ reflectionQ4 }}" onChange="{{ setReflectionQ4 }}" rows="2" style="width:100%; box-sizing:border-box; border:1px solid {{ border }}; border-radius:12px; padding:10px 12px; font-family:-apple-system,system-ui; font-size:14px; color:{{ ink }}; outline:none; background:{{ cardBg }}; resize:none;"></textarea>
+            </div>
+            <div onClick="{{ saveReflection }}" style="background:{{ accent }}; color:#fff; border-radius:14px; padding:14px; text-align:center; font-family:-apple-system,system-ui; font-size:15px; font-weight:600; cursor:pointer; margin-top:4px;">{{ t.reflectionSave }}</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTimelineTab }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Timeline">
+    <div style="padding:64px 24px 8px; box-sizing:border-box;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+        <div style="font-family:-apple-system,system-ui; font-size:13px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:{{ accent }};">{{ t.timelineTitle }}</div>
+        <div style="display:flex; background:{{ cardBg }}; border:1px solid {{ border }}; border-radius:100px; padding:3px; gap:2px; flex-shrink:0;">
+          <div onClick="{{ setLangEn }}" style="padding:4px 9px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ langEnBg }}; color:{{ langEnColor }};">EN</div>
+          <div onClick="{{ setLangMs }}" style="padding:4px 9px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ langMsBg }}; color:{{ langMsColor }};">MY</div>
+          <div onClick="{{ setLangZh }}" style="padding:4px 9px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ langZhBg }}; color:{{ langZhColor }};">中文</div>
+        </div>
+      </div>
+      <div style="font-family:'Source Serif 4', serif; font-size:32px; font-weight:600; color:{{ ink }}; margin-top:8px; line-height:1.15;">{{ t.timelineTitle }}</div>
+    </div>
+
+    <!-- filter chips -->
+    <div style="padding:0 24px; box-sizing:border-box; display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+      <div onClick="{{ setFilterWalking }}" style="padding:7px 13px; border-radius:100px; background:{{ filterWalkingBg }}; color:{{ filterWalkingColor }}; border:1px solid {{ border }}; font-family:-apple-system,system-ui; font-size:12px; font-weight:600; cursor:pointer;">🚶 {{ t.filterWalking }}</div>
+      <div onClick="{{ setFilterGym }}" style="padding:7px 13px; border-radius:100px; background:{{ filterGymBg }}; color:{{ filterGymColor }}; border:1px solid {{ border }}; font-family:-apple-system,system-ui; font-size:12px; font-weight:600; cursor:pointer;">💪 {{ t.filterGym }}</div>
+      <div onClick="{{ setFilterOmad }}" style="padding:7px 13px; border-radius:100px; background:{{ filterOmadBg }}; color:{{ filterOmadColor }}; border:1px solid {{ border }}; font-family:-apple-system,system-ui; font-size:12px; font-weight:600; cursor:pointer;">{{ t.filterOmad }}</div>
+      <div onClick="{{ setFilterLoss }}" style="padding:7px 13px; border-radius:100px; background:{{ filterLossBg }}; color:{{ filterLossColor }}; border:1px solid {{ border }}; font-family:-apple-system,system-ui; font-size:12px; font-weight:600; cursor:pointer;">↓ {{ t.filterLoss }}</div>
+      <div onClick="{{ setFilterGain }}" style="padding:7px 13px; border-radius:100px; background:{{ filterGainBg }}; color:{{ filterGainColor }}; border:1px solid {{ border }}; font-family:-apple-system,system-ui; font-size:12px; font-weight:600; cursor:pointer;">↑ {{ t.filterGain }}</div>
+      <div onClick="{{ toggleDateFilter }}" style="padding:7px 13px; border-radius:100px; background:{{ dateFilterBg }}; color:{{ dateFilterColor }}; border:1px solid {{ border }}; font-family:-apple-system,system-ui; font-size:12px; font-weight:600; cursor:pointer;">{{ t.filterDateRange }}</div>
+    </div>
+
+    <div style="padding:0 24px; box-sizing:border-box; display:flex; gap:8px; margin-bottom:8px;">
+      <sc-for list="{{ moodFilterOptions }}" as="mf" hint-placeholder-count="5">
+        <div onClick="{{ mf.toggle }}" style="width:34px; height:34px; border-radius:50%; background:{{ mf.bg }}; border:1.5px solid {{ mf.ring }}; display:flex; align-items:center; justify-content:center; font-size:16px; cursor:pointer;">{{ mf.emoji }}</div>
+      </sc-for>
+    </div>
+
+    <sc-if value="{{ showDateFilter }}" hint-placeholder-val="{{ false }}">
+      <div style="padding:0 24px; box-sizing:border-box; display:flex; gap:10px; margin-bottom:12px;">
+        <div style="flex:1;">
+          <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }}; margin-bottom:4px;">{{ t.filterFrom }}</div>
+          <input type="date" value="{{ dateFrom }}" onChange="{{ setDateFrom }}" style="width:100%; box-sizing:border-box; border:1px solid {{ border }}; border-radius:10px; padding:8px 10px; font-family:-apple-system,system-ui; font-size:13px; color:{{ ink }}; background:{{ cardBg }};" />
+        </div>
+        <div style="flex:1;">
+          <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }}; margin-bottom:4px;">{{ t.filterTo }}</div>
+          <input type="date" value="{{ dateTo }}" onChange="{{ setDateTo }}" style="width:100%; box-sizing:border-box; border:1px solid {{ border }}; border-radius:10px; padding:8px 10px; font-family:-apple-system,system-ui; font-size:13px; color:{{ ink }}; background:{{ cardBg }};" />
+        </div>
+      </div>
+    </sc-if>
+
+    <div style="display:flex; flex-direction:column; gap:14px; padding:0 24px 24px; box-sizing:border-box;">
+      <sc-if value="{{ hasTimelineEntries }}" hint-placeholder-val="{{ true }}">
+      <sc-for list="{{ timelineEntries }}" as="entry" hint-placeholder-count="3">
+        <div style="background:{{ cardBg }}; border:1px solid {{ border }}; border-radius:20px; padding:18px; box-sizing:border-box;">
+          <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px;">
+            <span style="font-family:'Source Serif 4', serif; font-size:19px; font-weight:600; color:{{ ink }};">{{ entry.weekday }}</span>
+            <span style="font-family:-apple-system,system-ui; font-size:12px; color:{{ muted }};">{{ entry.dateLabel }}</span>
+          </div>
+
+          <!-- morning weight -->
+          <div style="display:flex; gap:12px;">
+            <div style="width:28px; height:28px; border-radius:50%; background:{{ accentSoft }}; color:{{ accent }}; display:flex; align-items:center; justify-content:center; font-family:-apple-system,system-ui; font-size:12px; font-weight:700; flex-shrink:0;">M</div>
+            <div style="padding-bottom:12px;">
+              <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }};">{{ t.morningLabel }}</div>
+              <div style="font-family:'Source Serif 4', serif; font-size:17px; font-weight:600; color:{{ ink }};">{{ entry.morningDisplay }} {{ unit }}</div>
+            </div>
+          </div>
+          <div style="width:2px; height:10px; background:{{ border }}; margin-left:13px;"></div>
+
+          <!-- meals -->
+          <sc-if value="{{ entry.hasMeals }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; gap:12px;">
+              <div style="width:28px; height:28px; border-radius:50%; background:{{ pageBg }}; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">🍽️</div>
+              <div style="padding-bottom:12px; flex:1;">
+                <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }}; margin-bottom:4px;">{{ t.mealsLabel }}</div>
+                <sc-for list="{{ entry.mealsList }}" as="meal" hint-placeholder-count="0">
+                  <div style="font-family:-apple-system,system-ui; font-size:13px; color:{{ ink }}; margin-bottom:2px;">{{ meal.icon }} {{ meal.label }}: {{ meal.text }}</div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="width:2px; height:10px; background:{{ border }}; margin-left:13px;"></div>
+          </sc-if>
+
+          <!-- activities -->
+          <sc-if value="{{ entry.hasActivities }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; gap:12px;">
+              <div style="width:28px; height:28px; border-radius:50%; background:{{ pageBg }}; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">🏃</div>
+              <div style="padding-bottom:12px; flex:1;">
+                <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }}; margin-bottom:4px;">{{ t.activityLabel }}</div>
+                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                  <sc-for list="{{ entry.activityChips }}" as="chip" hint-placeholder-count="0">
+                    <div style="background:{{ pageBg }}; border-radius:100px; padding:5px 10px; font-family:-apple-system,system-ui; font-size:12px; color:{{ ink }};">{{ chip.emoji }} {{ chip.label }}</div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+            <div style="width:2px; height:10px; background:{{ border }}; margin-left:13px;"></div>
+          </sc-if>
+
+          <!-- mood -->
+          <sc-if value="{{ entry.hasMood }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; gap:12px;">
+              <div style="width:28px; height:28px; border-radius:50%; background:{{ pageBg }}; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0;">{{ entry.moodEmoji }}</div>
+              <div style="padding-bottom:12px;">
+                <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }}; margin-bottom:2px;">{{ t.moodLabel }}</div>
+                <div style="font-family:-apple-system,system-ui; font-size:13px; color:{{ ink }};">{{ entry.moodLabel }}</div>
+              </div>
+            </div>
+            <div style="width:2px; height:10px; background:{{ border }}; margin-left:13px;"></div>
+          </sc-if>
+
+          <!-- notes -->
+          <sc-if value="{{ entry.hasNotes }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; gap:12px;">
+              <div style="width:28px; height:28px; border-radius:50%; background:{{ pageBg }}; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">📝</div>
+              <div style="padding-bottom:12px; flex:1;">
+                <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }}; margin-bottom:2px;">{{ t.notesLabel }}</div>
+                <div style="font-family:'Source Serif 4', serif; font-style:italic; font-size:13px; color:{{ ink }};">&ldquo;{{ entry.notes }}&rdquo;</div>
+              </div>
+            </div>
+            <div style="width:2px; height:10px; background:{{ border }}; margin-left:13px;"></div>
+          </sc-if>
+
+          <!-- evening weight -->
+          <sc-if value="{{ entry.hasEvening }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; gap:12px;">
+              <div style="width:28px; height:28px; border-radius:50%; background:{{ accentSoft }}; color:{{ accent }}; display:flex; align-items:center; justify-content:center; font-family:-apple-system,system-ui; font-size:12px; font-weight:700; flex-shrink:0;">E</div>
+              <div>
+                <div style="font-family:-apple-system,system-ui; font-size:11px; color:{{ muted }};">{{ t.nightLabel }}</div>
+                <div style="font-family:'Source Serif 4', serif; font-size:17px; font-weight:600; color:{{ ink }};">{{ entry.eveningDisplay }} {{ unit }}</div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+      </sc-if>
+      <sc-if value="{{ noTimelineEntries }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center; padding:30px 0; font-family:-apple-system,system-ui; font-size:13px; color:{{ muted }};">{{ t.noEntriesMatch }}</div>
+      </sc-if>
+    </div>
+    </div>
+    </sc-if>
+
+    <sc-if value="{{ isInsightsTab }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Insights">
+    <div style="padding:64px 24px 8px; box-sizing:border-box;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px;">
+        <div style="font-family:-apple-system,system-ui; font-size:13px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:{{ accent }};">{{ t.insightsTitle }}</div>
+        <div style="display:flex; background:{{ cardBg }}; border:1px solid {{ border }}; border-radius:100px; padding:3px; gap:2px; flex-shrink:0;">
+          <div onClick="{{ setLangEn }}" style="padding:4px 9px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ langEnBg }}; color:{{ langEnColor }};">EN</div>
+          <div onClick="{{ setLangMs }}" style="padding:4px 9px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ langMsBg }}; color:{{ langMsColor }};">MY</div>
+          <div onClick="{{ setLangZh }}" style="padding:4px 9px; border-radius:100px; font-family:-apple-system,system-ui; font-size:11px; font-weight:600; cursor:pointer; background:{{ langZhBg }}; color:{{ langZhColor }};">中文</div>
+        </div>
+      </div>
+      <div style="font-family:'Source Serif 4', serif; font-size:32px; font-weight:600; color:{{ ink }}; margin-top:8px; line-height:1.15;">{{ t.correlationTitle }}</div>
+      <div style="font-family:-apple-system,system-ui; font-size:14px; color:{{ muted }}; margin-top:4px;">{{ insightsSubtitle }}</div>
+    </div>
+
+    <!-- habit correlation (hero) -->
+    <div style="font-family:-apple-system,system-ui; font-size:13px; font-weight:700; color:#5C7A5E; margin:16px 24px 8px;">{{ t.lossHeader }}</div>
+    <div style="display:flex; flex-direction:column; gap:10px; padding:0 24px; box-sizing:border-box;">
+      <sc-for list="{{ lossHabits }}" as="h" hint-placeholder-count="3">
+        <div style="background:{{ cardBg }}; border:1px solid {{ border }}; border-radius:16px; padding:14px 16px; display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:22px; height:22px; border-radius:50%; background:#DCE5DC; color:#5C7A5E; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0;">&#10003;</div>
+            <span style="font-family:-apple-system,system-ui; font-size:14px; font-weight:600; color:{{ ink }};">{{ h.label }}</span>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:'Source Serif 4', serif; font-size:16px; font-weight:600; color:#5C7A5E;">&minus;{{ h.deltaDisplay }}</div>
+            <div style="font-family:-apple-system,system-ui; font-size:10px; color:{{ muted }};">{{ t.confidenceLabel }}: {{ h.confidence }}</div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="font-family:-apple-system,system-ui; font-size:13px; font-weight:700; color:{{ accent }}; margin:18px 24px 8px;">{{ t.gainHeader }}</div>
+    <div style="display:flex; flex-direction:column; gap:10px; padding:0 24px; box-sizing:border-box;">
+      <sc-for list="{{ gainHabits }}" as="h" hint-placeholder-count="3">
+        <div style="background:{{ cardBg }}; border:1px solid {{ border }}; border-radius:16px; padding:14px 16px; display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:22px; height:22px; border-radius:50%; background:{{ accentSoft }}; flex-shrink:0;"></div>
+            <span style="font-family:-apple-system,system-ui; font-size:14px; font-weight:600; color:{{ ink }};">{{ h.label }}</span>
+          </div>
+          <div style="font-family:'Source Serif 4', serif; font-size:16px; font-weight:600; color:{{ accent }};">+{{ h.deltaDisplay }}</div>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- personal insights -->
+    <div style="margin:20px 24px 0; background:{{ cardBg }}; border-radius:20px; border:1px solid {{ border }}; padding:18px; box-sizing:border-box;">
+      <div style="font-family:-apple-system,system-ui; font-size:15px; font-weight:600; color:{{ ink }}; margin-bottom:12px;">{{ t.smartInsightsTitle2 }}</div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <sc-for list="{{ smartInsights }}" as="line" hint-placeholder-count="5">
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <div style="width:6px; height:6px; border-radius:50%; background:{{ accent }}; margin-top:7px; flex-shrink:0;"></div>
+            <span style="font-family:-apple-system,system-ui; font-size:14px; line-height:1.5; color:{{ ink }};">{{ line }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- AI summary teaser (de-emphasized) -->
+    <div style="margin:14px 24px 0; border:1px solid {{ border }}; border-radius:16px; padding:14px 16px; box-sizing:border-box; display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <div>
+        <div style="font-family:-apple-system,system-ui; font-size:13px; font-weight:600; color:{{ muted }}; margin-bottom:2px;">{{ t.aiTitle }}</div>
+        <div style="font-family:-apple-system,system-ui; font-size:12px; color:{{ muted }}; line-height:1.4;">{{ t.aiTeaser }}</div>
+      </div>
+      <div onClick="{{ tapAi }}" style="border:1px solid {{ border }}; border-radius:10px; padding:8px 12px; text-align:center; font-family:-apple-system,system-ui; font-size:12px; font-weight:600; color:{{ ink }}; cursor:pointer; white-space:nowrap; flex-shrink:0;">{{ t.aiButton }}</div>
+    </div>
+
+    <!-- export -->
+    <div style="margin:14px 24px 24px; background:{{ cardBg }}; border-radius:20px; border:1px solid {{ border }}; padding:18px; box-sizing:border-box;">
+      <div style="font-family:-apple-system,system-ui; font-size:15px; font-weight:600; color:{{ ink }}; margin-bottom:6px;">{{ t.exportTitle }}</div>
+      <div style="font-family:-apple-system,system-ui; font-size:13px; color:{{ muted }}; margin-bottom:14px; line-height:1.5;">{{ t.exportSubtitle }}</div>
+      <div style="display:flex; gap:8px;">
+        <div onClick="{{ exportTxt }}" style="flex:1; border:1px solid {{ border }}; border-radius:12px; padding:10px; text-align:center; font-family:-apple-system,system-ui; font-size:13px; font-weight:600; color:{{ ink }}; cursor:pointer;">TXT</div>
+        <div onClick="{{ exportPdf }}" style="flex:1; border:1px solid {{ border }}; border-radius:12px; padding:10px; text-align:center; font-family:-apple-system,system-ui; font-size:13px; font-weight:600; color:{{ ink }}; cursor:pointer;">PDF</div>
+        <div onClick="{{ exportCsv }}" style="flex:1; border:1px solid {{ border }}; border-radius:12px; padding:10px; text-align:center; font-family:-apple-system,system-ui; font-size:13px; font-weight:600; color:{{ ink }}; cursor:pointer;">CSV</div>
+      </div>
+    </div>
+    </div>
+    </sc-if>
+
+    <div style="flex:1;"></div>
+
+    <!-- tab bar -->
+    <div style="position:sticky; bottom:0; background:{{ pageBg }}CC; backdrop-filter:blur(10px); border-top:1px solid {{ border }}; display:flex; padding:10px 8px 26px; box-sizing:border-box;">
+      <div onClick="{{ tapJournal }}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;">
+        <div style="width:8px; height:8px; border-radius:2px; background:{{ journalTabColor }};"></div>
+        <span style="font-family:-apple-system,system-ui; font-size:11px; font-weight:{{ journalTabWeight }}; color:{{ journalTabColor }};">{{ t.tabJournal }}</span>
+      </div>
+      <div onClick="{{ tapProgress }}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;">
+        <div style="width:8px; height:8px; border-radius:50%; border:1.5px solid {{ progressTabColor }};"></div>
+        <span style="font-family:-apple-system,system-ui; font-size:11px; font-weight:{{ progressTabWeight }}; color:{{ progressTabColor }};">{{ t.tabProgress }}</span>
+      </div>
+      <div onClick="{{ tapTimeline }}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;">
+        <div style="width:8px; height:8px; border-radius:2px; border:1.5px solid {{ timelineTabColor }};"></div>
+        <span style="font-family:-apple-system,system-ui; font-size:11px; font-weight:{{ timelineTabWeight }}; color:{{ timelineTabColor }};">{{ t.tabTimeline }}</span>
+      </div>
+      <div onClick="{{ tapInsights }}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;">
+        <div style="width:8px; height:8px; border-radius:2px; border:1.5px solid {{ insightsTabColor }}; transform:rotate(45deg);"></div>
+        <span style="font-family:-apple-system,system-ui; font-size:11px; font-weight:{{ insightsTabWeight }}; color:{{ insightsTabColor }};">{{ t.tabInsights }}</span>
+      </div>
+    </div>
+
+    <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute; bottom:100px; left:50%; transform:translateX(-50%); background:{{ ink }}; color:#fff; font-family:-apple-system,system-ui; font-size:13px; font-weight:500; padding:10px 18px; border-radius:100px; white-space:nowrap; box-shadow:0 8px 24px rgba(0,0,0,0.2);">{{ toast }}</div>
+    </sc-if>
+
+  </div>
+</x-import>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 480, &quot;height&quot;: 950}, &quot;accentColor&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;terracotta&quot;, &quot;tsType&quot;: &quot;'terracotta'|'green'|'blue'|'purple'&quot;, &quot;options&quot;: [&quot;terracotta&quot;, &quot;green&quot;, &quot;blue&quot;, &quot;purple&quot;], &quot;section&quot;: &quot;Style&quot;}, &quot;defaultUnit&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;kg&quot;, &quot;tsType&quot;: &quot;'kg'|'lbs'&quot;, &quot;options&quot;: [&quot;kg&quot;, &quot;lbs&quot;], &quot;section&quot;: &quot;Behavior&quot;}, &quot;defaultLanguage&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;en&quot;, &quot;tsType&quot;: &quot;'en'|'ms'|'zh'&quot;, &quot;options&quot;: [&quot;en&quot;, &quot;ms&quot;, &quot;zh&quot;], &quot;section&quot;: &quot;Behavior&quot;}, &quot;showMealWeightsDefault&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Behavior&quot;}}">
+class Component extends DCLogic {
+  state = {
+    activeTab: 'journal',
+    lang: this.props.defaultLanguage ?? 'en',
+    unit: this.props.defaultUnit ?? 'kg',
+    timeMode: 'auto',
+    morningKg: '',
+    eveningKg: '',
+    beforeKg: '',
+    afterKg: '',
+    showMealWeights: this.props.showMealWeightsDefault ?? false,
+    breakfast: '',
+    morningNotes: '',
+    lunch: '',
+    dinner: '',
+    snacks: '',
+    activities: [],
+    customActivityInput: '',
+    mood: null,
+    notes: '',
+    saved: false,
+    toast: null,
+    showReflection: false,
+    reflectionQ1: '',
+    reflectionQ2: '',
+    reflectionQ3: '',
+    reflectionQ4: '',
+    filterTag: null,
+    filterMood: null,
+    showDateFilter: false,
+    dateFrom: '',
+    dateTo: '',
+  };
+
+  toDisplay(kg) {
+    if (kg === '' || kg === null || kg === undefined || isNaN(kg)) return '';
+    var KG_PER_LB = 0.45359237;
+    var v = this.state.unit === 'kg' ? kg : kg / KG_PER_LB;
+    return String(Math.round(v * 10) / 10);
+  }
+
+  toKg(text) {
+    if (text === '') return '';
+    var KG_PER_LB = 0.45359237;
+    var v = parseFloat(text);
+    if (isNaN(v)) return '';
+    return this.state.unit === 'kg' ? v : v * KG_PER_LB;
+  }
+
+  doSetUnit(u) {
+    this.setState({ unit: u });
+  }
+
+  doSetLang(l) {
+    this.setState({ lang: l });
+  }
+
+  doSetTab(tab) {
+    this.setState({ activeTab: tab });
+  }
+
+  doExport(fmt, template) {
+    this.doShowToast(template.replace('{fmt}', fmt));
+  }
+
+  doSetWeight(field, e) {
+    var kg = this.toKg(e.target.value);
+    var patch = {};
+    patch[field] = kg;
+    this.setState(patch);
+  }
+
+  doToggleMealWeights() {
+    this.setState(function (s) { return { showMealWeights: !s.showMealWeights }; });
+  }
+
+  doSetField(field, e) {
+    var patch = {};
+    patch[field] = e.target.value;
+    this.setState(patch);
+  }
+
+  doSetBreakfast(e) { this.doSetField('breakfast', e); }
+  doSetMorningNotes(e) { this.doSetField('morningNotes', e); }
+  doSetLunch(e) { this.doSetField('lunch', e); }
+  doSetDinner(e) { this.doSetField('dinner', e); }
+  doSetSnacks(e) { this.doSetField('snacks', e); }
+  doSetNotes(e) { this.doSetField('notes', e); }
+
+  doSetCustomActivityInput(e) {
+    this.setState({ customActivityInput: e.target.value });
+  }
+
+  doToggleActivity(label) {
+    this.setState(function (s) {
+      var has = s.activities.indexOf(label) !== -1;
+      var next = has ? s.activities.filter(function (a) { return a !== label; }) : s.activities.concat([label]);
+      return { activities: next };
+    });
+  }
+
+  doAddCustomActivity() {
+    var t = this.state.customActivityInput.trim();
+    if (!t) return;
+    this.setState(function (s) {
+      if (s.activities.indexOf(t) !== -1) return { customActivityInput: '' };
+      return { activities: s.activities.concat([t]), customActivityInput: '' };
+    });
+  }
+
+  doCustomActivityKeyDown(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      this.doAddCustomActivity();
+    }
+  }
+
+  doRemoveActivity(i) {
+    this.setState(function (s) {
+      return { activities: s.activities.filter(function (_, idx) { return idx !== i; }) };
+    });
+  }
+
+  doSetMood(m) {
+    this.setState({ mood: m });
+  }
+
+  doSetTimeMode(mode) {
+    this.setState({ timeMode: mode });
+  }
+
+  doOpenReflection() {
+    this.setState({ showReflection: true });
+  }
+
+  doCloseReflection() {
+    this.setState({ showReflection: false });
+  }
+
+  doSetReflectionField(field, e) {
+    var patch = {};
+    patch[field] = e.target.value;
+    this.setState(patch);
+  }
+
+  doSaveReflection(msg) {
+    this.setState({ showReflection: false });
+    this.doShowToast(msg);
+  }
+
+  doSetFilterTag(tag) {
+    this.setState(function (s) { return { filterTag: s.filterTag === tag ? null : tag }; });
+  }
+
+  doSetFilterMood(mood) {
+    this.setState(function (s) { return { filterMood: s.filterMood === mood ? null : mood }; });
+  }
+
+  doToggleDateFilter() {
+    this.setState(function (s) { return { showDateFilter: !s.showDateFilter }; });
+  }
+
+  doSetDateFrom(e) {
+    this.setState({ dateFrom: e.target.value });
+  }
+
+  doSetDateTo(e) {
+    this.setState({ dateTo: e.target.value });
+  }
+
+  doSave() {
+    var self = this;
+    if (this.state.saved) return;
+    this.setState({ saved: true });
+    clearTimeout(this._saveTimer);
+    this._saveTimer = setTimeout(function () { self.setState({ saved: false }); }, 1800);
+  }
+
+  doShowToast(msg) {
+    var self = this;
+    this.setState({ toast: msg });
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(function () { self.setState({ toast: null }); }, 1600);
+  }
+
+  renderVals() {
+    var self = this;
+    var s = this.state;
+    var accentsMap = {
+      terracotta: { accent: '#C1694A', accentSoft: '#F1DCD2' },
+      green:      { accent: '#5C7A5E', accentSoft: '#DCE5DC' },
+      blue:       { accent: '#4C6FA5', accentSoft: '#DBE3EF' },
+      purple:     { accent: '#7A6291', accentSoft: '#E6DEEC' },
+    };
+    var palette = accentsMap[this.props.accentColor || 'terracotta'];
+    var cardBgVal = '#FBF8F4';
+
+    var translations = {
+      en: {
+        newEntry: 'New Entry',
+        daySubtitle: 'Day 1 of your journal \u00b7 log less, learn more',
+        weightTitle: 'Weight',
+        morning: 'Morning',
+        evening: 'Evening',
+        beforeMeal: 'Before meal',
+        afterMeal: 'After meal',
+        mealsTitle: 'What did you eat?',
+        mealsPlaceholder: 'Americano, ayam gepuk...',
+        activityTitle: 'Activity',
+        activityPlaceholder: 'Walk 30 minutes, push-ups...',
+        notesTitle: 'Notes & mood',
+        notesPlaceholder: 'Felt hungry after dinner...',
+        mealWeightHide: 'Hide meal weight',
+        mealWeightShow: 'Add before/after meal weight',
+        saveEntry: 'Save Entry',
+        saved: '\u2713 Saved',
+        tabJournal: 'Journal',
+        tabProgress: 'Progress',
+        tabTimeline: 'Timeline',
+        tabInsights: 'Insights',
+        toastProgress: 'Weight Progress \u2014 coming soon',
+        toastTimeline: 'Timeline \u2014 coming soon',
+        toastInsights: 'Insights \u2014 coming soon',
+      },
+      ms: {
+        newEntry: 'Catatan Baharu',
+        daySubtitle: 'Hari 1 jurnal anda \u00b7 catat kurang, faham lebih',
+        weightTitle: 'Berat',
+        morning: 'Pagi',
+        evening: 'Malam',
+        beforeMeal: 'Sebelum makan',
+        afterMeal: 'Selepas makan',
+        mealsTitle: 'Apa yang anda makan?',
+        mealsPlaceholder: 'Americano, ayam gepuk...',
+        activityTitle: 'Aktiviti',
+        activityPlaceholder: 'Jalan kaki 30 minit, tekan tubi...',
+        notesTitle: 'Nota & mood',
+        notesPlaceholder: 'Rasa lapar selepas makan malam...',
+        mealWeightHide: 'Sembunyi berat makan',
+        mealWeightShow: 'Tambah berat sebelum/selepas makan',
+        saveEntry: 'Simpan Catatan',
+        saved: '\u2713 Disimpan',
+        tabJournal: 'Jurnal',
+        tabProgress: 'Kemajuan',
+        tabTimeline: 'Garis Masa',
+        tabInsights: 'Wawasan',
+        toastProgress: 'Kemajuan Berat \u2014 akan datang',
+        toastTimeline: 'Garis Masa \u2014 akan datang',
+        toastInsights: 'Wawasan \u2014 akan datang',
+      },
+      zh: {
+        newEntry: '新记录',
+        daySubtitle: '日记第 1 天 \u00b7 少记录，多领悟',
+        weightTitle: '体重',
+        morning: '早晨',
+        evening: '晚上',
+        beforeMeal: '饭前',
+        afterMeal: '饭后',
+        mealsTitle: '你吃了什么？',
+        mealsPlaceholder: '美式咖啡、椰浆饭...',
+        activityTitle: '活动',
+        activityPlaceholder: '步行30分钟、俯卧撑...',
+        notesTitle: '备注与心情',
+        notesPlaceholder: '晚餐后感到饥饿...',
+        mealWeightHide: '隐藏饭前饭后体重',
+        mealWeightShow: '添加饭前/饭后体重',
+        saveEntry: '保存记录',
+        saved: '\u2713 已保存',
+        tabJournal: '日记',
+        tabProgress: '进度',
+        tabTimeline: '时间轴',
+        tabInsights: '洞察',
+        toastProgress: '体重进度 \u2014 即将推出',
+        toastTimeline: '时间轴 \u2014 即将推出',
+        toastInsights: '洞察 \u2014 即将推出',
+      },
+    };
+    var progressText = {
+      en: {
+        progressTitle: 'Weight Progress',
+        lostLabel: 'Lost',
+        startedLabel: 'Started',
+        streakLabel: 'Streak (days)',
+        chartTitle: '21-day trend',
+        weeklyAvgLabel: 'Weekly average',
+        monthlyAvgLabel: 'Monthly average',
+        milestonesTitle: 'Milestones',
+        subtitleTemplate: 'Started at {start} {unit} \u00b7 {days} days logged',
+        milestone5: 'Lost 5 {unit}',
+        milestoneStreak: '21-day logging streak',
+        milestoneHalfway: 'Passed halfway to goal',
+        goalLabel: 'Goal',
+        goalProgressTemplate: '{pct}% to goal',
+        weeklyReflectionTitle: 'Weekly Reflection',
+        weeklyReflectionPrompt: 'How was this week?',
+        reflectionQ1: 'How was your week?',
+        reflectionQ2: 'What went well?',
+        reflectionQ3: 'What was your biggest challenge?',
+        reflectionQ4: 'What will you improve next week?',
+        reflectionSave: 'Save Reflection',
+        reflectionSaved: 'Reflection saved',
+        reflectionClose: 'Close',
+      },
+      ms: {
+        progressTitle: 'Kemajuan Berat',
+        lostLabel: 'Berkurang',
+        startedLabel: 'Bermula',
+        streakLabel: 'Streak (hari)',
+        chartTitle: 'Trend 21 hari',
+        weeklyAvgLabel: 'Purata mingguan',
+        monthlyAvgLabel: 'Purata bulanan',
+        milestonesTitle: 'Pencapaian',
+        subtitleTemplate: 'Bermula pada {start} {unit} \u00b7 {days} hari dicatat',
+        milestone5: 'Berkurang 5 {unit}',
+        milestoneStreak: 'Streak catatan 21 hari',
+        milestoneHalfway: 'Melepasi separuh matlamat',
+        goalLabel: 'Matlamat',
+        goalProgressTemplate: '{pct}% ke matlamat',
+        weeklyReflectionTitle: 'Refleksi Mingguan',
+        weeklyReflectionPrompt: 'Bagaimana minggu ini?',
+        reflectionQ1: 'Bagaimana minggu anda?',
+        reflectionQ2: 'Apa yang berjalan lancar?',
+        reflectionQ3: 'Apakah cabaran terbesar anda?',
+        reflectionQ4: 'Apa yang anda akan perbaiki minggu depan?',
+        reflectionSave: 'Simpan Refleksi',
+        reflectionSaved: 'Refleksi disimpan',
+        reflectionClose: 'Tutup',
+      },
+      zh: {
+        progressTitle: '体重进度',
+        lostLabel: '已减',
+        startedLabel: '起始',
+        streakLabel: '连续天数',
+        chartTitle: '21 天趋势',
+        weeklyAvgLabel: '每周平均',
+        monthlyAvgLabel: '每月平均',
+        milestonesTitle: '里程碑',
+        subtitleTemplate: '起始 {start} {unit} \u00b7 已记录 {days} 天',
+        milestone5: '已减 5 {unit}',
+        milestoneStreak: '连续记录21天',
+        milestoneHalfway: '已达成一半目标',
+        goalLabel: '目标',
+        goalProgressTemplate: '距目标 {pct}%',
+        weeklyReflectionTitle: '每周反思',
+        weeklyReflectionPrompt: '这周过得怎么样？',
+        reflectionQ1: '这周过得怎么样？',
+        reflectionQ2: '哪些方面做得不错？',
+        reflectionQ3: '最大的挑战是什么？',
+        reflectionQ4: '下周想改进什么？',
+        reflectionSave: '保存反思',
+        reflectionSaved: '反思已保存',
+        reflectionClose: '关闭',
+      },
+    };
+    var t = translations[s.lang] || translations.en;
+    var pt = progressText[s.lang] || progressText.en;
+    Object.keys(pt).forEach(function (k) { t[k] = pt[k]; });
+    var localeMap = { en: 'en-US', ms: 'ms-MY', zh: 'zh-CN' };
+    var today = new Date();
+    var todayLabel = today.toLocaleDateString(localeMap[s.lang] || 'en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+    var KG_PER_LB2 = 0.45359237;
+    function toUnit(kgVal) {
+      var v = s.unit === 'kg' ? kgVal : kgVal / KG_PER_LB2;
+      return (Math.round(v * 10) / 10).toFixed(1);
+    }
+
+    var series = [80.0,79.6,79.8,79.3,79.0,78.7,78.9,78.4,78.0,77.6,77.8,77.2,76.8,76.5,76.1,75.7,75.9,75.3,74.8,74.1,73.4];
+    var minW = Math.min.apply(null, series);
+    var maxW = Math.max.apply(null, series);
+    var chartW = 300, chartH = 100, pad = 4;
+    var chartPoints = series.map(function (v, i) {
+      var x = pad + (i / (series.length - 1)) * (chartW - 2 * pad);
+      var y = pad + (1 - (v - minW) / (maxW - minW)) * (chartH - 2 * pad);
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+
+    var startKg = series[0];
+    var currentKg = series[series.length - 1];
+    var lostKg = startKg - currentKg;
+    var streakDays = series.length;
+    var last7 = series.slice(-7);
+    var weeklyAvgKg = last7.reduce(function (a, b) { return a + b; }, 0) / last7.length;
+    var monthlyAvgKg = series.reduce(function (a, b) { return a + b; }, 0) / series.length;
+    var progressSubtitle = t.subtitleTemplate
+      .replace('{start}', toUnit(startKg))
+      .replace('{unit}', s.unit)
+      .replace('{days}', streakDays);
+
+    var goalKg = 65;
+    var goalDisplay = toUnit(goalKg);
+    var goalPct = Math.max(0, Math.min(100, Math.round((lostKg / (startKg - goalKg)) * 100)));
+    var goalProgressLabel = t.goalProgressTemplate.replace('{pct}', goalPct);
+    var milestoneThresholds = [80, 75, 70, 65];
+    var milestoneLadder = milestoneThresholds.map(function (kgVal, i) {
+      var achieved = currentKg <= kgVal;
+      return {
+        display: toUnit(kgVal),
+        achieved: achieved,
+        isLast: i === milestoneThresholds.length - 1,
+        notLast: i !== milestoneThresholds.length - 1,
+        dotBg: achieved ? palette.accent : '#FBF8F4',
+        dotColor: achieved ? '#fff' : '#948779',
+      };
+    });
+
+    var timelineText = {
+      en: { timelineTitle: 'Timeline', morningLabel: 'Morning Weight', nightLabel: 'Evening Weight', mealsLabel: 'Meals', activityLabel: 'Activities', notesLabel: 'Notes', moodLabel: 'Mood', today: 'Today',
+        filterWalking: 'Walking', filterOmad: 'OMAD', filterGym: 'Gym', filterMood: 'Mood', filterGain: 'Weight Gain', filterLoss: 'Weight Loss', filterDateRange: 'Date Range',
+        filterFrom: 'From', filterTo: 'To', noEntriesMatch: 'No entries match these filters.' },
+      ms: { timelineTitle: 'Garis Masa', morningLabel: 'Berat Pagi', nightLabel: 'Berat Malam', mealsLabel: 'Makanan', activityLabel: 'Aktiviti', notesLabel: 'Nota', moodLabel: 'Mood', today: 'Hari Ini',
+        filterWalking: 'Berjalan', filterOmad: 'OMAD', filterGym: 'Gim', filterMood: 'Mood', filterGain: 'Berat Naik', filterLoss: 'Berat Turun', filterDateRange: 'Julat Tarikh',
+        filterFrom: 'Dari', filterTo: 'Hingga', noEntriesMatch: 'Tiada catatan sepadan.' },
+      zh: { timelineTitle: '时间轴', morningLabel: '早晨体重', nightLabel: '晚间体重', mealsLabel: '餐食', activityLabel: '活动', notesLabel: '备注', moodLabel: '心情', today: '今天',
+        filterWalking: '步行', filterOmad: 'OMAD', filterGym: '健身房', filterMood: '心情', filterGain: '体重增加', filterLoss: '体重减少', filterDateRange: '日期范围',
+        filterFrom: '从', filterTo: '到', noEntriesMatch: '没有符合条件的记录。' },
+    };
+    var tt = timelineText[s.lang] || timelineText.en;
+    Object.keys(tt).forEach(function (k) { t[k] = tt[k]; });
+
+    var rawEntries = [
+      { daysAgo: 4, morningKg: 75.9, eveningKg: 75.5, breakfast: 'Oatmeal', lunch: 'Grilled chicken salad', dinner: '', snacks: '', activityTags: ['walking'], mood: 'good', notes: 'Felt good today.' },
+      { daysAgo: 3, morningKg: 75.3, eveningKg: 74.9, breakfast: '', lunch: '', dinner: 'Americano, Nasi lemak', snacks: '', activityTags: ['gym'], mood: 'okay', notes: 'Skipped supper, felt hungry before bed.' },
+      { daysAgo: 2, morningKg: 74.8, eveningKg: 74.5, breakfast: 'Boiled eggs', lunch: 'Chicken rice', dinner: '', snacks: '', activityTags: ['walking', 'gym'], mood: 'great', notes: '' },
+      { daysAgo: 1, morningKg: 74.1, eveningKg: 73.8, breakfast: 'Americano', lunch: 'Banana', dinner: '', snacks: '', activityTags: [], mood: 'difficult', notes: 'Low energy, took it easy.' },
+      { daysAgo: 0, morningKg: 73.4, eveningKg: null, breakfast: '', lunch: '', dinner: 'Ayam Gepuk', snacks: '', activityTags: ['walking'], mood: 'good', notes: 'Felt hungry after dinner.' },
+    ];
+    var insightsText = {
+      en: {
+        insightsTitle: 'Insights',
+        insightsSubtitle: 'Based on ' + streakDays + ' days of data',
+        smartInsightsTitle: 'Smart Insights',
+        insight1: 'You tend to lose more weight on days you walk more than 20 minutes.',
+        insight2: 'Your average weight decreases after OMAD days.',
+        insight3: 'Late-night meals usually lead to weight gain the following morning.',
+        insight4: 'Your best-performing weekday is Tuesday.',
+        insight5: 'Your average weekly loss is 0.5 kg.',
+        correlationTitle: 'Habit Correlation',
+        smartInsightsTitle2: 'Personal Insights',
+        lossHeader: 'Habits Helping',
+        gainHeader: 'Habits Increasing Weight',
+        habitOmad: 'OMAD',
+        habitWalking: 'Walking',
+        habitNoSupper: 'No supper',
+        habitSoftDrinks: 'Soft drinks',
+        habitLateMeals: 'Late-night meals',
+        habitNoExercise: 'No exercise',
+        avgLossLabel: 'Average loss',
+        avgGainLabel: 'Average gain',
+        confidenceLabel: 'Confidence',
+        confidenceHigh: 'High',
+        confidenceMedium: 'Medium',
+        aiTitle: 'AI Summary',
+        aiTeaser: 'Get a personalized monthly recap generated from your journal.',
+        aiButton: 'Unlock AI Summary',
+        exportTitle: 'Export Journal',
+        exportSubtitle: 'Take your data to any AI assistant for deeper analysis.',
+        aiToast: 'AI Summary is a premium feature \u2014 coming soon',
+        exportToastTemplate: 'Exported as {fmt} (demo)',
+      },
+      ms: {
+        insightsTitle: 'Wawasan',
+        insightsSubtitle: 'Berdasarkan ' + streakDays + ' hari data',
+        smartInsightsTitle: 'Wawasan Pintar',
+        insight1: 'Anda cenderung menurunkan lebih banyak berat pada hari anda berjalan lebih 20 minit.',
+        insight2: 'Purata berat anda menurun selepas hari OMAD.',
+        insight3: 'Makan lewat malam biasanya menyebabkan kenaikan berat pada keesokan pagi.',
+        insight4: 'Hari terbaik anda ialah Selasa.',
+        insight5: 'Purata penurunan mingguan anda ialah 0.5 kg.',
+        correlationTitle: 'Kaitan Tabiat',
+        smartInsightsTitle2: 'Wawasan Peribadi',
+        lossHeader: 'Tabiat Yang Membantu',
+        gainHeader: 'Tabiat Menambah Berat',
+        habitOmad: 'OMAD',
+        habitWalking: 'Berjalan kaki',
+        habitNoSupper: 'Tiada makan malam lewat',
+        habitSoftDrinks: 'Minuman bergas',
+        habitLateMeals: 'Makan lewat malam',
+        habitNoExercise: 'Tiada senaman',
+        avgLossLabel: 'Purata penurunan',
+        avgGainLabel: 'Purata kenaikan',
+        confidenceLabel: 'Keyakinan',
+        confidenceHigh: 'Tinggi',
+        confidenceMedium: 'Sederhana',
+        aiTitle: 'Ringkasan AI',
+        aiTeaser: 'Dapatkan ringkasan bulanan peribadi daripada jurnal anda.',
+        aiButton: 'Buka Ringkasan AI',
+        exportTitle: 'Eksport Jurnal',
+        exportSubtitle: 'Bawa data anda ke mana-mana pembantu AI untuk analisis lanjut.',
+        aiToast: 'Ringkasan AI ialah ciri premium \u2014 akan datang',
+        exportToastTemplate: 'Dieksport sebagai {fmt} (demo)',
+      },
+      zh: {
+        insightsTitle: '洞察',
+        insightsSubtitle: '基于 ' + streakDays + ' 天的数据',
+        smartInsightsTitle: '智能洞察',
+        insight1: '步行超过20分钟的日子里，你往往会减掉更多体重。',
+        insight2: 'OMAD（一日一餐）之后，你的平均体重会下降。',
+        insight3: '深夜进食通常会导致隔天早上体重增加。',
+        insight4: '你表现最好的星期是星期二。',
+        insight5: '你的平均每周减重为 0.5 公斤。',
+        correlationTitle: '习惯关联',
+        smartInsightsTitle2: '个人洞察',
+        lossHeader: '有帮助的习惯',
+        gainHeader: '导致增重的习惯',
+        habitOmad: 'OMAD',
+        habitWalking: '步行',
+        habitNoSupper: '不吃宵夜',
+        habitSoftDrinks: '含糖饮料',
+        habitLateMeals: '深夜进食',
+        habitNoExercise: '未运动',
+        avgLossLabel: '平均减重',
+        avgGainLabel: '平均增重',
+        confidenceLabel: '可信度',
+        confidenceHigh: '高',
+        confidenceMedium: '中',
+        aiTitle: 'AI 摘要',
+        aiTeaser: '根据你的日记生成个性化的月度回顾。',
+        aiButton: '解锁 AI 摘要',
+        exportTitle: '导出日记',
+        exportSubtitle: '将数据导入任何 AI 助手进行深入分析。',
+        aiToast: 'AI 摘要为高级功能 \u2014 即将推出',
+        exportToastTemplate: '已导出为 {fmt}（演示）',
+      },
+    };
+    var it = insightsText[s.lang] || insightsText.en;
+    Object.keys(it).forEach(function (k) { t[k] = it[k]; });
+
+    var journal2Text = {
+      en: {
+        morningSectionTitle: 'Morning',
+        eveningSectionTitle: 'Evening',
+        breakfastLabel: 'Breakfast',
+        breakfastPlaceholder: 'What did you have?',
+        lunchLabel: 'Lunch',
+        lunchPlaceholder: 'What did you have?',
+        dinnerLabel: 'Dinner',
+        dinnerPlaceholder: 'What did you have?',
+        snacksLabel: 'Snacks',
+        snacksPlaceholder: 'Anything in between?',
+        morningNotesLabel: 'Morning notes',
+        morningNotesPlaceholder: 'How are you starting the day?',
+        activitiesQuickTitle: 'Activity',
+        addCustomActivityLabel: '+ Custom',
+        customActivityPlaceholder: 'Add a custom activity...',
+        actLabelWalking: 'Walking', actLabelRunning: 'Running', actLabelGym: 'Gym',
+        actLabelCycling: 'Cycling', actLabelYoga: 'Yoga', actLabelSwimming: 'Swimming',
+        moodTitle: 'How are you feeling?',
+        moodGreat: 'Great', moodGood: 'Good', moodOkay: 'Okay', moodDifficult: 'Difficult', moodVeryHard: 'Very hard',
+        eveningNotesLabel: 'Notes',
+        completionTitle: "Today's Journal",
+        completedTemplate: 'Completed {pct}%',
+        morningDoneLabel: 'Morning',
+        mealsDoneLabel: 'Meals',
+        activitiesDoneLabel: 'Activities',
+        notesDoneLabel: 'Notes',
+        optionalTag: 'optional',
+        previewLabel: 'Preview',
+        previewAuto: 'Auto', previewMorning: 'Morning', previewEvening: 'Evening',
+        reminderTitle: 'Complete your evening entry',
+        reminderText: "Don't forget to log your evening weight, meals, and mood.",
+        morningLockedText: 'Evening entry unlocks later today.',
+      },
+      ms: {
+        morningSectionTitle: 'Pagi',
+        eveningSectionTitle: 'Malam',
+        breakfastLabel: 'Sarapan',
+        breakfastPlaceholder: 'Apa yang anda makan?',
+        lunchLabel: 'Tengah hari',
+        lunchPlaceholder: 'Apa yang anda makan?',
+        dinnerLabel: 'Makan malam',
+        dinnerPlaceholder: 'Apa yang anda makan?',
+        snacksLabel: 'Snek',
+        snacksPlaceholder: 'Ada makan di celah-celah?',
+        morningNotesLabel: 'Nota pagi',
+        morningNotesPlaceholder: 'Bagaimana permulaan hari anda?',
+        activitiesQuickTitle: 'Aktiviti',
+        addCustomActivityLabel: '+ Tambah',
+        customActivityPlaceholder: 'Tambah aktiviti lain...',
+        actLabelWalking: 'Berjalan kaki', actLabelRunning: 'Berlari', actLabelGym: 'Gim',
+        actLabelCycling: 'Berbasikal', actLabelYoga: 'Yoga', actLabelSwimming: 'Berenang',
+        moodTitle: 'Bagaimana perasaan anda?',
+        moodGreat: 'Sangat baik', moodGood: 'Baik', moodOkay: 'Okay', moodDifficult: 'Susah', moodVeryHard: 'Sangat susah',
+        eveningNotesLabel: 'Nota',
+        completionTitle: 'Jurnal Hari Ini',
+        completedTemplate: '{pct}% selesai',
+        morningDoneLabel: 'Pagi',
+        mealsDoneLabel: 'Makanan',
+        activitiesDoneLabel: 'Aktiviti',
+        notesDoneLabel: 'Nota',
+        optionalTag: 'pilihan',
+        previewLabel: 'Pratonton',
+        previewAuto: 'Auto', previewMorning: 'Pagi', previewEvening: 'Malam',
+        reminderTitle: 'Lengkapkan catatan malam anda',
+        reminderText: 'Jangan lupa catat berat, makanan dan mood malam anda.',
+        morningLockedText: 'Catatan malam dibuka kemudian hari ini.',
+      },
+      zh: {
+        morningSectionTitle: '早晨',
+        eveningSectionTitle: '晚上',
+        breakfastLabel: '早餐',
+        breakfastPlaceholder: '你吃了什么？',
+        lunchLabel: '午餐',
+        lunchPlaceholder: '你吃了什么？',
+        dinnerLabel: '晚餐',
+        dinnerPlaceholder: '你吃了什么？',
+        snacksLabel: '零食',
+        snacksPlaceholder: '有吃点什么吗？',
+        morningNotesLabel: '早晨备注',
+        morningNotesPlaceholder: '今天是怎么开始的？',
+        activitiesQuickTitle: '活动',
+        addCustomActivityLabel: '+ 自定义',
+        customActivityPlaceholder: '添加自定义活动...',
+        actLabelWalking: '步行', actLabelRunning: '跑步', actLabelGym: '健身房',
+        actLabelCycling: '骑行', actLabelYoga: '瑜伽', actLabelSwimming: '游泳',
+        moodTitle: '你现在感觉如何？',
+        moodGreat: '很好', moodGood: '不错', moodOkay: '一般', moodDifficult: '有点难', moodVeryHard: '很难熬',
+        eveningNotesLabel: '备注',
+        completionTitle: '今日日记',
+        completedTemplate: '已完成 {pct}%',
+        morningDoneLabel: '早晨',
+        mealsDoneLabel: '餐食',
+        activitiesDoneLabel: '活动',
+        notesDoneLabel: '备注',
+        optionalTag: '可选',
+        previewLabel: '预览',
+        previewAuto: '自动', previewMorning: '早晨', previewEvening: '晚上',
+        reminderTitle: '完成你的晚间记录',
+        reminderText: '别忘了记录晚间体重、餐食和心情。',
+        morningLockedText: '晚间记录将在稍后解锁。',
+      },
+    };
+    var jt = journal2Text[s.lang] || journal2Text.en;
+    Object.keys(jt).forEach(function (k) { t[k] = jt[k]; });
+
+    var hour = new Date().getHours();
+    var autoMode = hour < 15 ? 'morning' : 'evening';
+    var effectiveMode = s.timeMode === 'auto' ? autoMode : s.timeMode;
+    var showEveningSection = effectiveMode === 'evening';
+    var eveningComplete = s.eveningKg !== '' && (s.lunch.trim() !== '' || s.dinner.trim() !== '') && s.mood !== null;
+    var showEveningReminder = showEveningSection && !eveningComplete;
+
+    var quickActivityDefs = [
+      { key: 'walking', emoji: '\ud83d\udeb6', label: t.actLabelWalking },
+      { key: 'running', emoji: '\ud83c\udfc3', label: t.actLabelRunning },
+      { key: 'gym', emoji: '\ud83d\udcaa', label: t.actLabelGym },
+      { key: 'cycling', emoji: '\ud83d\udeb4', label: t.actLabelCycling },
+      { key: 'yoga', emoji: '\ud83e\uddd8', label: t.actLabelYoga },
+      { key: 'swimming', emoji: '\ud83c\udfca', label: t.actLabelSwimming },
+    ];
+    var quickActivities = quickActivityDefs.map(function (a) {
+      var selected = s.activities.indexOf(a.label) !== -1;
+      return {
+        key: a.key,
+        emoji: a.emoji,
+        label: a.label,
+        selected: selected,
+        bg: selected ? palette.accent : '#FBF8F4',
+        fg: selected ? '#fff' : '#2B2521',
+        toggle: function () { self.doToggleActivity(a.label); },
+      };
+    });
+
+    var moodDefs = [
+      { key: 'great', emoji: '\ud83d\ude00', label: t.moodGreat },
+      { key: 'good', emoji: '\ud83d\ude42', label: t.moodGood },
+      { key: 'okay', emoji: '\ud83d\ude10', label: t.moodOkay },
+      { key: 'difficult', emoji: '\ud83d\ude1e', label: t.moodDifficult },
+      { key: 'veryhard', emoji: '\ud83d\ude2b', label: t.moodVeryHard },
+    ];
+    var moodOptions = moodDefs.map(function (m) {
+      var selected = s.mood === m.key;
+      return {
+        key: m.key,
+        emoji: m.emoji,
+        selected: selected,
+        bg: selected ? palette.accentSoft : 'transparent',
+        ring: selected ? palette.accent : 'transparent',
+        select: function () { self.doSetMood(m.key); },
+      };
+    });
+    var selectedMoodLabel = s.mood ? (moodDefs.filter(function (m) { return m.key === s.mood; })[0] || {}).label : '';
+
+    var morningDone = s.morningKg !== '';
+    var mealsDone = s.breakfast.trim() !== '' || s.lunch.trim() !== '' || s.dinner.trim() !== '' || s.snacks.trim() !== '';
+    var activitiesDone = s.activities.length > 0;
+    var notesDone = s.mood !== null || s.notes.trim() !== '';
+    var doneCount = (morningDone ? 1 : 0) + (mealsDone ? 1 : 0) + (activitiesDone ? 1 : 0) + (notesDone ? 1 : 0);
+    var completedPct = Math.round((doneCount / 4) * 100);
+    var completedLabel = t.completedTemplate.replace('{pct}', completedPct);
+
+    var lossHabits = [
+      { label: t.habitWalking, delta: -0.4, confidence: t.confidenceHigh },
+      { label: t.habitNoSupper, delta: -0.5, confidence: t.confidenceMedium },
+      { label: t.habitOmad, delta: -0.3, confidence: t.confidenceHigh },
+    ].map(function (h) { return { label: h.label, deltaDisplay: toUnit(Math.abs(h.delta)) + ' ' + s.unit, confidence: h.confidence }; });
+
+    var gainHabits = [
+      { label: t.habitLateMeals, delta: 0.6 },
+      { label: t.habitSoftDrinks, delta: 0.5 },
+      { label: t.habitNoExercise, delta: 0.4 },
+    ].map(function (h) { return { label: h.label, deltaDisplay: toUnit(h.delta) + ' ' + s.unit }; });
+
+    var smartInsights = [t.insight1, t.insight2, t.insight3, t.insight4, t.insight5];
+
+    var activityDefByKey = {};
+    quickActivityDefs.forEach(function (a) { activityDefByKey[a.key] = a; });
+    var moodDefByKey = {};
+    moodDefs.forEach(function (m) { moodDefByKey[m.key] = m; });
+
+    var localeMap2 = { en: 'en-US', ms: 'ms-MY', zh: 'zh-CN' };
+    var mealDefs = [
+      { field: 'breakfast', icon: '\ud83c\udf73', label: t.breakfastLabel },
+      { field: 'lunch', icon: '\ud83e\udd57', label: t.lunchLabel },
+      { field: 'dinner', icon: '\ud83c\udf72', label: t.dinnerLabel },
+      { field: 'snacks', icon: '\ud83c\udf6a', label: t.snacksLabel },
+    ];
+    var timelineEntries = rawEntries.slice().reverse().map(function (e) {
+      var d = new Date();
+      d.setDate(d.getDate() - e.daysAgo);
+      var weekday = e.daysAgo === 0 ? t.today : d.toLocaleDateString(localeMap2[s.lang] || 'en-US', { weekday: 'long' });
+      var dateLabel = d.toLocaleDateString(localeMap2[s.lang] || 'en-US', { month: 'short', day: 'numeric' });
+      var isoDate = d.toISOString().slice(0, 10);
+
+      var mealsList = mealDefs.filter(function (md) { return e[md.field] && e[md.field].trim() !== ''; })
+        .map(function (md) { return { icon: md.icon, label: md.label, text: e[md.field] }; });
+      var filledMealCount = mealsList.length;
+
+      var activityChips = e.activityTags.map(function (tag) {
+        var def = activityDefByKey[tag];
+        return def ? { emoji: def.emoji, label: def.label } : { emoji: '\u2022', label: tag };
+      });
+
+      var moodDef = e.mood ? moodDefByKey[e.mood] : null;
+
+      var dayDelta = (e.eveningKg !== null) ? (e.eveningKg - e.morningKg) : 0;
+
+      return {
+        weekday: weekday,
+        dateLabel: dateLabel,
+        isoDate: isoDate,
+        morningDisplay: toUnit(e.morningKg),
+        eveningDisplay: e.eveningKg === null ? null : toUnit(e.eveningKg),
+        hasEvening: e.eveningKg !== null,
+        mealsList: mealsList,
+        hasMeals: mealsList.length > 0,
+        activityChips: activityChips,
+        hasActivities: activityChips.length > 0,
+        hasMood: !!moodDef,
+        moodEmoji: moodDef ? moodDef.emoji : '',
+        moodLabel: moodDef ? moodDef.label : '',
+        notes: e.notes,
+        hasNotes: e.notes.length > 0,
+        tagWalking: e.activityTags.indexOf('walking') !== -1,
+        tagGym: e.activityTags.indexOf('gym') !== -1,
+        tagOmad: filledMealCount === 1,
+        tagGain: dayDelta > 0,
+        tagLoss: dayDelta < 0,
+        tagMood: e.mood,
+      };
+    });
+
+    var filteredTimelineEntries = timelineEntries.filter(function (e) {
+      var tagOk = true;
+      if (s.filterTag === 'walking') tagOk = e.tagWalking;
+      else if (s.filterTag === 'gym') tagOk = e.tagGym;
+      else if (s.filterTag === 'omad') tagOk = e.tagOmad;
+      else if (s.filterTag === 'gain') tagOk = e.tagGain;
+      else if (s.filterTag === 'loss') tagOk = e.tagLoss;
+      var moodOk = !s.filterMood || e.tagMood === s.filterMood;
+      var dateOk = true;
+      if (s.dateFrom) dateOk = dateOk && e.isoDate >= s.dateFrom;
+      if (s.dateTo) dateOk = dateOk && e.isoDate <= s.dateTo;
+      return tagOk && moodOk && dateOk;
+    });
+
+    return {
+      pageBg: '#EDE6DC',
+      cardBg: '#FBF8F4',
+      ink: '#2B2521',
+      muted: '#948779',
+      border: '#E4DACB',
+      accent: palette.accent,
+      accentSoft: palette.accentSoft,
+
+      t: t,
+      todayLabel: todayLabel,
+      lang: s.lang,
+      langEnBg: s.lang === 'en' ? palette.accent : 'transparent',
+      langEnColor: s.lang === 'en' ? '#fff' : '#948779',
+      langMsBg: s.lang === 'ms' ? palette.accent : 'transparent',
+      langMsColor: s.lang === 'ms' ? '#fff' : '#948779',
+      langZhBg: s.lang === 'zh' ? palette.accent : 'transparent',
+      langZhColor: s.lang === 'zh' ? '#fff' : '#948779',
+      setLangEn: function () { self.doSetLang('en'); },
+      setLangMs: function () { self.doSetLang('ms'); },
+      setLangZh: function () { self.doSetLang('zh'); },
+      unit: s.unit,
+      kgToggleBg: s.unit === 'kg' ? palette.accent : 'transparent',
+      kgToggleColor: s.unit === 'kg' ? '#fff' : '#948779',
+      lbsToggleBg: s.unit === 'lbs' ? palette.accent : 'transparent',
+      lbsToggleColor: s.unit === 'lbs' ? '#fff' : '#948779',
+
+      morningDisplay: this.toDisplay(s.morningKg),
+      eveningDisplay: this.toDisplay(s.eveningKg),
+      beforeDisplay: this.toDisplay(s.beforeKg),
+      afterDisplay: this.toDisplay(s.afterKg),
+
+      setUnitKg: function () { self.doSetUnit('kg'); },
+      setUnitLbs: function () { self.doSetUnit('lbs'); },
+      setMorning: function (e) { self.doSetWeight('morningKg', e); },
+      setEvening: function (e) { self.doSetWeight('eveningKg', e); },
+      setBefore: function (e) { self.doSetWeight('beforeKg', e); },
+      setAfter: function (e) { self.doSetWeight('afterKg', e); },
+
+      showMealWeights: s.showMealWeights,
+      toggleMealWeights: function () { self.doToggleMealWeights(); },
+      mealWeightGlyph: s.showMealWeights ? '\u2212' : '+',
+      mealWeightLabel: s.showMealWeights ? t.mealWeightHide : t.mealWeightShow,
+
+      breakfast: s.breakfast,
+      setBreakfast: function (e) { self.doSetBreakfast(e); },
+      morningNotes: s.morningNotes,
+      setMorningNotes: function (e) { self.doSetMorningNotes(e); },
+      lunch: s.lunch,
+      setLunch: function (e) { self.doSetLunch(e); },
+      dinner: s.dinner,
+      setDinner: function (e) { self.doSetDinner(e); },
+      snacks: s.snacks,
+      setSnacks: function (e) { self.doSetSnacks(e); },
+
+      quickActivities: quickActivities,
+      customActivityInput: s.customActivityInput,
+      setCustomActivityInput: function (e) { self.doSetCustomActivityInput(e); },
+      addCustomActivity: function () { self.doAddCustomActivity(); },
+      customActivityKeyDown: function (e) { self.doCustomActivityKeyDown(e); },
+      hasActivities: s.activities.length > 0,
+      activities: s.activities.map(function (text, i) {
+        return { text: text, remove: function () { self.doRemoveActivity(i); } };
+      }),
+
+      moodOptions: moodOptions,
+      selectedMoodLabel: selectedMoodLabel,
+
+      notes: s.notes,
+      setNotes: function (e) { self.doSetNotes(e); },
+
+      setTimeAuto: function () { self.doSetTimeMode('auto'); },
+      setTimeMorning: function () { self.doSetTimeMode('morning'); },
+      setTimeEvening: function () { self.doSetTimeMode('evening'); },
+      previewAutoBg: s.timeMode === 'auto' ? palette.accent : 'transparent',
+      previewAutoColor: s.timeMode === 'auto' ? '#fff' : '#948779',
+      previewMorningBg: s.timeMode === 'morning' ? palette.accent : 'transparent',
+      previewMorningColor: s.timeMode === 'morning' ? '#fff' : '#948779',
+      previewEveningBg: s.timeMode === 'evening' ? palette.accent : 'transparent',
+      previewEveningColor: s.timeMode === 'evening' ? '#fff' : '#948779',
+
+      showEveningSection: showEveningSection,
+      showEveningReminder: showEveningReminder,
+      completedLabel: completedLabel,
+      morningDone: morningDone,
+      mealsDone: mealsDone,
+      activitiesDone: activitiesDone,
+      notesDone: notesDone,
+      morningDoneColor: morningDone ? palette.accent : '#948779',
+      mealsDoneColor: mealsDone ? palette.accent : '#948779',
+      activitiesDoneColor: activitiesDone ? palette.accent : '#948779',
+      notesDoneColor: notesDone ? palette.accent : '#948779',
+
+      saveLabel: s.saved ? t.saved : t.saveEntry,
+      saveBg: s.saved ? '#5C7A5E' : palette.accent,
+      handleSave: function () { self.doSave(); },
+
+      isJournalTab: s.activeTab === 'journal',
+      isProgressTab: s.activeTab === 'progress',
+      isTimelineTab: s.activeTab === 'timeline',
+      isInsightsTab: s.activeTab === 'insights',
+      tapJournal: function () { self.doSetTab('journal'); },
+      tapProgress: function () { self.doSetTab('progress'); },
+      tapTimeline: function () { self.doSetTab('timeline'); },
+      tapInsights: function () { self.doSetTab('insights'); },
+
+      journalActive: s.activeTab === 'journal',
+      progressActive: s.activeTab === 'progress',
+      journalTabColor: s.activeTab === 'journal' ? palette.accent : '#948779',
+      journalTabWeight: s.activeTab === 'journal' ? 600 : 400,
+      progressTabColor: s.activeTab === 'progress' ? palette.accent : '#948779',
+      progressTabWeight: s.activeTab === 'progress' ? 600 : 400,
+      timelineTabColor: s.activeTab === 'timeline' ? palette.accent : '#948779',
+      timelineTabWeight: s.activeTab === 'timeline' ? 600 : 400,
+      insightsTabColor: s.activeTab === 'insights' ? palette.accent : '#948779',
+      insightsTabWeight: s.activeTab === 'insights' ? 600 : 400,
+
+      timelineEntries: filteredTimelineEntries,
+      hasTimelineEntries: filteredTimelineEntries.length > 0,
+      noTimelineEntries: filteredTimelineEntries.length === 0,
+      filterTag: s.filterTag,
+      setFilterWalking: function () { self.doSetFilterTag('walking'); },
+      setFilterGym: function () { self.doSetFilterTag('gym'); },
+      setFilterOmad: function () { self.doSetFilterTag('omad'); },
+      setFilterGain: function () { self.doSetFilterTag('gain'); },
+      setFilterLoss: function () { self.doSetFilterTag('loss'); },
+      filterWalkingBg: s.filterTag === 'walking' ? palette.accent : cardBgVal,
+      filterWalkingColor: s.filterTag === 'walking' ? '#fff' : '#2B2521',
+      filterGymBg: s.filterTag === 'gym' ? palette.accent : cardBgVal,
+      filterGymColor: s.filterTag === 'gym' ? '#fff' : '#2B2521',
+      filterOmadBg: s.filterTag === 'omad' ? palette.accent : cardBgVal,
+      filterOmadColor: s.filterTag === 'omad' ? '#fff' : '#2B2521',
+      filterGainBg: s.filterTag === 'gain' ? palette.accent : cardBgVal,
+      filterGainColor: s.filterTag === 'gain' ? '#fff' : '#2B2521',
+      filterLossBg: s.filterTag === 'loss' ? palette.accent : cardBgVal,
+      filterLossColor: s.filterTag === 'loss' ? '#fff' : '#2B2521',
+
+      moodFilterOptions: moodDefs.map(function (m) {
+        var selected = s.filterMood === m.key;
+        return { key: m.key, emoji: m.emoji, bg: selected ? palette.accent : cardBgVal, ring: selected ? palette.accent : '#E4DACB', toggle: function () { self.doSetFilterMood(m.key); } };
+      }),
+
+      showDateFilter: s.showDateFilter,
+      toggleDateFilter: function () { self.doToggleDateFilter(); },
+      dateFilterBg: s.showDateFilter || s.dateFrom || s.dateTo ? palette.accent : cardBgVal,
+      dateFilterColor: s.showDateFilter || s.dateFrom || s.dateTo ? '#fff' : '#2B2521',
+      dateFrom: s.dateFrom,
+      dateTo: s.dateTo,
+      setDateFrom: function (e) { self.doSetDateFrom(e); },
+      setDateTo: function (e) { self.doSetDateTo(e); },
+
+      smartInsights: smartInsights,
+      lossHabits: lossHabits,
+      gainHabits: gainHabits,
+      tapAi: function () { self.doShowToast(t.aiToast); },
+      exportTxt: function () { self.doExport('TXT', t.exportToastTemplate); },
+      exportPdf: function () { self.doExport('PDF', t.exportToastTemplate); },
+      exportCsv: function () { self.doExport('CSV', t.exportToastTemplate); },
+
+      currentDisplay: toUnit(currentKg),
+      lostDisplay: toUnit(lostKg),
+      startedDisplay: toUnit(startKg),
+      weeklyAvgDisplay: toUnit(weeklyAvgKg),
+      monthlyAvgDisplay: toUnit(monthlyAvgKg),
+      chartMinLabel: toUnit(minW),
+      chartMaxLabel: toUnit(maxW),
+      chartPoints: chartPoints,
+      streakDays: streakDays,
+      progressSubtitle: progressSubtitle,
+
+      goalDisplay: goalDisplay,
+      goalProgressLabel: goalProgressLabel,
+      goalPct: goalPct,
+      milestoneLadder: milestoneLadder,
+
+      showReflection: s.showReflection,
+      openReflection: function () { self.doOpenReflection(); },
+      closeReflection: function () { self.doCloseReflection(); },
+      reflectionQ1: s.reflectionQ1,
+      reflectionQ2: s.reflectionQ2,
+      reflectionQ3: s.reflectionQ3,
+      reflectionQ4: s.reflectionQ4,
+      setReflectionQ1: function (e) { self.doSetReflectionField('reflectionQ1', e); },
+      setReflectionQ2: function (e) { self.doSetReflectionField('reflectionQ2', e); },
+      setReflectionQ3: function (e) { self.doSetReflectionField('reflectionQ3', e); },
+      setReflectionQ4: function (e) { self.doSetReflectionField('reflectionQ4', e); },
+      saveReflection: function () { self.doSaveReflection(t.reflectionSaved); },
+
+      toast: s.toast,
+    };
+  }
+}
+</script>
+</body>
+</html>
